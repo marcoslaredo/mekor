@@ -24,8 +24,9 @@ function readComponentMetadata(componentPath: string): ComponentMetadata {
   let standalone: boolean = false;
 
   function visit(node: ts.Node) {
-    if (ts.isClassDeclaration(node) && node.decorators) {
-      node.decorators.forEach(decorator => {
+    if (ts.isClassDeclaration(node)) {
+      const decorators = ts.getDecorators(node);
+      decorators?.forEach(decorator => {
         if (ts.isCallExpression(decorator.expression) && decorator.expression.expression.getText() === 'Component') {
           const args = decorator.expression.arguments;
           if (args.length) {
@@ -43,8 +44,9 @@ function readComponentMetadata(componentPath: string): ComponentMetadata {
         }
       });
     }
-    if (ts.isPropertyDeclaration(node) && node.decorators) {
-      node.decorators.forEach(decorator => {
+    if (ts.isPropertyDeclaration(node)) {
+      const decorators = ts.getDecorators(node);
+      decorators?.forEach(decorator => {
         if (ts.isCallExpression(decorator.expression) && decorator.expression.expression.getText() === 'Input') {
           const name = node.name.getText();
           const type = node.type ? node.type.getText() : null;
@@ -57,27 +59,26 @@ function readComponentMetadata(componentPath: string): ComponentMetadata {
   }
 
   visit(sourceFile);
-  console.log({selector, standalone, inputs});
   return {selector, standalone, inputs};
 }
 
 // Function to generate example page
 function generateExamplePage(componentName, metadata: ComponentMetadata) {
   const exampleHtml = `
-    <!DOCTYPE html>
-    <html lang="en">
-    <head>
-      <meta charset="UTF-8">
-      <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>${componentName} Example</title>
-    </head>
-    <body>
-      <${metadata.selector}
-        ${metadata.inputs.map(input => `[${input.name}]="${input.defaultValue}"`)}
-      >
-      </${metadata.selector}>
-    </body>
-    </html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${componentName} Example</title>
+</head>
+<body>
+  <${metadata.selector}
+    ${metadata.inputs.map(input => `[${input.name}]=${input.defaultValue}`).join('\n\t\t')}
+  >
+  </${metadata.selector}>
+</body>
+</html>
   `;
 
   const exampleJs = `
