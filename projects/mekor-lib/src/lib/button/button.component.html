@@ -1,0 +1,7 @@
+<button
+  class="mekor-button"
+  [ngClass]="[buttonType, buttonSize, buttonFont]"
+  (click)="buttonClicked($event)"
+>
+  <ng-content></ng-content>
+</button>
